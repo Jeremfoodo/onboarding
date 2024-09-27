@@ -3,37 +3,6 @@ import pandas as pd
 import plotly.express as px
 from data_processing import load_prepared_data
 
-def apply_custom_style():
-    st.markdown("""
-        <style>
-        /* Style pour les boîtes */
-        .stMetric {
-            background-color: #f0f2f6;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        /* Style pour chaque boîte d'ancienneté */
-        .box-container {
-            background-color: #e0f7fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            text-align: center;
-        }
-        .mono-order {
-            color: #00796b;
-            font-weight: bold;
-        }
-        .percent {
-            color: #0288d1;
-            font-weight: bold;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-apply_custom_style()
-
 def main():
     st.title("Suivi de Septembre 2024")
 
@@ -100,31 +69,16 @@ def main():
 
     seniority_stats['% Mono-order'] = (seniority_stats['Jours avec commande'] / seniority_stats['Restaurant ID']) * 100
 
-    # Appliquer le style personnalisé pour les boîtes
-apply_custom_style()
-
-    # Afficher les boîtes pour chaque groupe d'ancienneté avec des conteneurs stylisés
+    # Afficher les boîtes pour chaque groupe d'ancienneté
     col1, col2, col3, col4, col5 = st.columns(5)
     for idx, col in enumerate([col1, col2, col3, col4, col5]):
         groupe = seniority_labels[idx]
         row = seniority_stats[seniority_stats['Groupe ancienneté'] == groupe]
         if not row.empty:
-            total = int(row['Restaurant ID'].values[0])  # Total des clients
-            mono = int(row['Jours avec commande'].values[0])  # Mono-orders
-            percent_mono = (mono / total) * 100 if total > 0 else 0  # Pourcentage de mono-orders
-        
-            # Utilisation de conteneurs HTML pour styliser les boîtes
-            with col:
-                st.markdown(f"""
-                    <div class="box-container">
-                        <div>{groupe}</div>
-                        <div><span>Total:</span> <strong>{total}</strong></div>
-                        <div><span class="mono-order">Mono-orders:</span> <strong>{mono}</strong></div>
-                        <div><span class="percent">% Mono-order:</span> <strong>{percent_mono:.1f}%</strong></div>
-                    </div>
-                """, unsafe_allow_html=True)
-
-
+            total = int(row['Restaurant ID'].values[0])
+            mono = int(row['Jours avec commande'].values[0])
+            percent_mono = row['% Mono-order'].values[0]
+            col.metric(label=groupe, value=total, delta=f"{mono} mono", help=f"{percent_mono:.2f}% mono-order")
 
     # Tableau des clients mono-order
     st.subheader("Clients Mono-order")
