@@ -1,10 +1,7 @@
 import streamlit as st
-import pandas as pd
 from plot_data import load_and_filter_data, plot_mono_vs_multi_order
-import matplotlib.pyplot as plt
-
-# Charger les données (supposons que la fonction load_prepared_data() soit déjà définie)
 from data_processing import load_prepared_data
+import plotly.graph_objects as go
 
 # Créer l'application avec les onglets
 def main():
@@ -23,9 +20,9 @@ def main():
         df = load_prepared_data()
         clients_fr = load_and_filter_data(df)
         
-        # Afficher les graphiques
+        # Afficher le graphique interactif avec Plotly
         fig = plot_mono_vs_multi_order(clients_fr)
-        st.pyplot(fig)
+        st.plotly_chart(fig)
 
 if __name__ == "__main__":
     main()
