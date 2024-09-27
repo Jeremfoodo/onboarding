@@ -117,26 +117,42 @@ def load_multi_order_clients(df):
     return multi_order_clients
 
 
-# Fonction pour tracer la courbe du pourcentage de clients passant à la deuxième commande
-def plot_second_order_curve(multi_order_clients):
-    total_clients = len(multi_order_clients)
-    multi_order_clients_60_days = multi_order_clients[multi_order_clients['Days to 2nd order'] <= 60]
-    
-    # Créer les données cumulatives jour par jour
-    cumulative_data = multi_order_clients_60_days['Days to 2nd order'].value_counts().sort_index().cumsum() / total_clients * 100
+import plotly.graph_objects as go
+
+def plot_second_order_curve(base_clients, second_clients=None):
+    # Calculer les données cumulatives pour la base
+    total_base_clients = len(base_clients)
+    base_clients_60_days = base_clients[base_clients['Days to 2nd order'] <= 60]
+    cumulative_base = base_clients_60_days['Days to 2nd order'].value_counts().sort_index().cumsum() / total_base_clients * 100
     
     # Créer le graphique interactif avec Plotly
     fig = go.Figure()
-    
+
+    # Ajout de la courbe pour la base
     fig.add_trace(go.Scatter(
-        x=cumulative_data.index,
-        y=cumulative_data.values,
+        x=cumulative_base.index,
+        y=cumulative_base.values,
         mode='lines+markers',
         marker=dict(size=8),
-        name="Pourcentage de clients",
+        name="Base historique",
         line=dict(color='royalblue', width=2)
     ))
     
+    # Si un deuxième ensemble de clients est fourni, ajouter une deuxième courbe
+    if second_clients is not None:
+        total_second_clients = len(second_clients)
+        second_clients_60_days = second_clients[second_clients['Days to 2nd order'] <= 60]
+        cumulative_second = second_clients_60_days['Days to 2nd order'].value_counts().sort_index().cumsum() / total_second_clients * 100
+        
+        fig.add_trace(go.Scatter(
+            x=cumulative_second.index,
+            y=cumulative_second.values,
+            mode='lines+markers',
+            marker=dict(size=8),
+            name="Deuxième groupe (septembre par ex.)",
+            line=dict(color='orange', width=2)
+        ))
+
     # Ajouter le layout
     fig.update_layout(
         title="Pourcentage de clients passant à la deuxième commande",
@@ -148,3 +164,4 @@ def plot_second_order_curve(multi_order_clients):
     )
     
     return fig
+
