@@ -12,8 +12,8 @@ def main():
     # Filtrer les clients ayant passé leur première commande en septembre 2024
     df['Date de commande'] = pd.to_datetime(df['Date de commande'])
     df['Date 1ere commande'] = pd.to_datetime(df['Date 1ere commande'], errors='coerce')
-    september_clients = df[(df['Date 1ere commande'].dt.month == 9) & 
-                           (df['Date 1ere commande'].dt.year == 2024) & 
+    september_clients = df[(df['date 1ere commande (Restaurant)'].dt.month == 9) & 
+                           (df['date 1ere commande (Restaurant)'].dt.year == 2024) & 
                            (df['Pays'] == 'FR')]
 
     # Calculer les mono-achat et multi-achat
