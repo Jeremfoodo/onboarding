@@ -89,7 +89,7 @@ def main():
 
     # Tableau des clients mono-order
     st.subheader("Clients Mono-order")
-    mono_clients = september_clients[september_clients['Jours avec commande'] == 1][['Restaurant ID', 'Restaurant', 'Code Postal', 'date 1ere commande (Restaurant)', 'Ancienneté']]
+    mono_clients = september_clients[september_clients['Jours avec commande'] == 1][['Restaurant ID', 'Restaurant', 'Postal code', 'date 1ere commande (Restaurant)', 'Ancienneté']]
     mono_clients['Ancienneté'] = mono_clients['Ancienneté'].astype(int)
     
     # Affichage du tableau des clients mono-order
