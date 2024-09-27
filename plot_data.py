@@ -77,13 +77,15 @@ def plot_mono_vs_multi_order(clients):
 
 # Fonction pour charger et filtrer les clients multi-commandes
 def load_multi_order_clients(df):
+    # Assurer que les colonnes de dates sont bien en datetime
     df['Date de commande'] = pd.to_datetime(df['Date de commande'], errors='coerce')
-    df = df[df['Date de commande'] >= pd.Timestamp('2024-01-01')]
+    df['date 1ere commande (Restaurant)'] = pd.to_datetime(df['date 1ere commande (Restaurant)'], errors='coerce')
     
     # Ne garder que les clients ayant passé leur première commande entre le 1er janvier et le 1er juin 2024
     df = df[(df['date 1ere commande (Restaurant)'] >= pd.Timestamp('2024-01-01')) & 
             (df['date 1ere commande (Restaurant)'] <= pd.Timestamp('2024-06-01'))]
     
+    # Supprimer les enregistrements sans date de première commande
     df = df.dropna(subset=['date 1ere commande (Restaurant)'])
     
     # Obtenir les clients avec plus d'une commande (multi-commande)
@@ -109,6 +111,7 @@ def load_multi_order_clients(df):
     multi_order_clients = multi_order_clients.merge(second_order_days, on='Restaurant ID', how='left')
     
     return multi_order_clients
+
 
 # Fonction pour tracer la courbe du pourcentage de clients passant à la deuxième commande
 def plot_second_order_curve(multi_order_clients):
