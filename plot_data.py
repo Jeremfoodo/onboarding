@@ -1,6 +1,5 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import streamlit as st
 
 # Charger et filtrer les données pour les clients français entre le 1er janvier 2024 et aujourd'hui
@@ -49,8 +48,7 @@ def load_and_filter_data(df):
     
     return clients
 
-
-# Générer le graphique à barres empilées
+# Générer un graphique interactif à barres empilées avec Plotly
 def plot_mono_vs_multi_order(clients):
     # Préparer les données pour le graphique
     months = pd.period_range(start='2024-01', end=pd.Timestamp.today(), freq='M')
@@ -67,34 +65,30 @@ def plot_mono_vs_multi_order(clients):
             data_list.append({
                 'Mois': month.to_timestamp(),
                 'Clients mono-achat': mono_order_clients,
-                'Clients multi-achats': multi_order_clients,
-                'Pourcentage mono-achat': round(percent_mono_order)
+                'Clients multi-achats': multi_order_clients
             })
 
     # Créer le DataFrame pour le graphique
     plot_data = pd.DataFrame(data_list)
 
-    # Générer le graphique à barres empilées
-    x_positions = np.arange(len(plot_data))
+    # Créer le graphique à barres empilées avec Plotly
+    fig = go.Figure(data=[
+        go.Bar(name='Clients mono-achat', x=plot_data['Mois'], y=plot_data['Clients mono-achat'], marker_color='#FFA07A'),
+        go.Bar(name='Clients multi-achats', x=plot_data['Mois'], y=plot_data['Clients multi-achats'], marker_color='#20B2AA')
+    ])
     
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.bar(x_positions, plot_data['Clients mono-achat'], label='Clients mono-achat', color='#FFA07A')
-    ax.bar(x_positions, plot_data['Clients multi-achats'], bottom=plot_data['Clients mono-achat'], label='Clients multi-achats', color='#20B2AA')
+    # Mettre à jour les paramètres du graphique
+    fig.update_layout(
+        barmode='stack',
+        title="Évolution des nouveaux clients en France (Mono-achat vs Multi-achats)",
+        xaxis_title="Mois",
+        yaxis_title="Nombre de nouveaux clients",
+        xaxis_tickformat='%Y-%m',
+        legend_title="Type de client",
+        hovermode="x"
+    )
     
-    ax.set_title("Évolution des nouveaux clients en France par mois")
-    ax.set_xlabel('Mois')
-    ax.set_ylabel('Nombre de nouveaux clients')
-    ax.set_xticks(x_positions)
-    ax.set_xticklabels(plot_data['Mois'].dt.strftime('%Y-%m'), rotation=45)
+    # Ajouter des étiquettes sur les barres
+    fig.update_traces(texttemplate='%{y}', textposition='inside')
     
-    # Ajouter le pourcentage de clients mono-achat au-dessus de chaque barre
-    for i, row in plot_data.iterrows():
-        total = row['Clients mono-achat'] + row['Clients multi-achats']
-        if total > 0:
-            percentage = row['Pourcentage mono-achat']
-            ax.text(i, total + 0.5, f'{percentage:.0f}%', ha='center', va='bottom')
-
-    plt.tight_layout()
-    plt.legend(title='Type de client')
-
     return fig
