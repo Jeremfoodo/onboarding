@@ -4,7 +4,6 @@ import plotly.express as px
 from data_processing import load_prepared_data
 from plot_data import plot_second_order_curve
 
-
 def main():
     st.title("Suivi de Septembre 2024")
 
@@ -17,7 +16,6 @@ def main():
     september_clients = df[(df['date 1ere commande (Restaurant)'].dt.month == 9) & 
                            (df['date 1ere commande (Restaurant)'].dt.year == 2024) & 
                            (df['Pays'] == 'FR')]
-
 
     # Calculer les mono-achat et multi-achat
     order_days = september_clients.groupby('Restaurant ID')['Date de commande'].apply(lambda x: x.dt.normalize().nunique()).reset_index()
@@ -50,6 +48,13 @@ def main():
     # Filtrer les clients multi-order de janvier à juin 2024 (base historique)
     base_clients = df[(df['date 1ere commande (Restaurant)'] >= pd.Timestamp('2024-01-01')) & 
                       (df['date 1ere commande (Restaurant)'] <= pd.Timestamp('2024-06-30'))]
+
+    # Calculer les jours de commande pour la base historique
+    base_order_days = base_clients.groupby('Restaurant ID')['Date de commande'].apply(lambda x: x.dt.normalize().nunique()).reset_index()
+    base_order_days.rename(columns={'Date de commande': 'Jours avec commande'}, inplace=True)
+    base_clients = base_clients.merge(base_order_days, on='Restaurant ID', how='left')
+
+    # Filtrer les multi-order clients de la base historique
     multi_base_clients = base_clients[base_clients['Jours avec commande'] > 1]
 
     # Calculer le temps nécessaire pour la deuxième commande pour la base historique
