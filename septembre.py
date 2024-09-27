@@ -16,6 +16,9 @@ def main():
                            (df['date 1ere commande (Restaurant)'].dt.year == 2024) & 
                            (df['Pays'] == 'FR')]
 
+    st.write(september_clients.columns)
+
+
     # Calculer les mono-achat et multi-achat
     order_days = september_clients.groupby('Restaurant ID')['Date de commande'].apply(lambda x: x.dt.normalize().nunique()).reset_index()
     order_days.rename(columns={'Date de commande': 'Jours avec commande'}, inplace=True)
