@@ -27,10 +27,18 @@ def load_and_filter_data(df):
     clients = clients[(clients['Date 1ère commande'] >= pd.Timestamp('2024-01-01')) &
                       (clients['Date 1ère commande'] <= pd.Timestamp.today())]
     
+    # Calculer le nombre de jours distincts avec des commandes pour chaque client
+    order_days = df.groupby('Restaurant ID')['Date de commande'].apply(lambda x: x.dt.normalize().nunique()).reset_index()
+    order_days.rename(columns={'Date de commande': 'Jours avec commande'}, inplace=True)
+    
+    # Fusionner avec le DataFrame des clients
+    clients = clients.merge(order_days, on='Restaurant ID', how='left')
+    
     # Ajouter le mois de la première commande
     clients['Mois 1ère commande'] = clients['Date 1ère commande'].dt.to_period('M')
     
     return clients
+
 
 
 
