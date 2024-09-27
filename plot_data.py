@@ -14,6 +14,7 @@ def load_and_filter_data(df):
     df = df[~df['Canal'].str.contains('trading', case=False, na=False)]
     
     # Filtrer les commandes à partir du 1er janvier 2024
+    df['Date de commande'] = pd.to_datetime(df['Date de commande'], errors='coerce')
     df = df[df['Date de commande'] >= pd.Timestamp('2024-01-01')]
     
     # Supprimer les enregistrements sans date de première commande
@@ -28,6 +29,9 @@ def load_and_filter_data(df):
         'Pays': 'first'
     }).reset_index()
     clients.rename(columns={'date 1ere commande (Restaurant)': 'Date 1ère commande'}, inplace=True)
+    
+    # Convertir 'Date 1ère commande' en datetime si ce n'est pas déjà fait
+    clients['Date 1ère commande'] = pd.to_datetime(clients['Date 1ère commande'], errors='coerce')
     
     # Ne garder que les clients dont la première commande est en 2024
     clients = clients[(clients['Date 1ère commande'] >= pd.Timestamp('2024-01-01')) &
@@ -44,6 +48,7 @@ def load_and_filter_data(df):
     clients['Mois 1ère commande'] = clients['Date 1ère commande'].dt.to_period('M')
     
     return clients
+
 
 # Générer le graphique à barres empilées
 def plot_mono_vs_multi_order(clients):
