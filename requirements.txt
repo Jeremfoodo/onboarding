@@ -1,0 +1,4 @@
+gdown
+pandas
+streamlit
+openpyxl
