@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from data_processing import load_prepared_data
+from plot_data import plot_second_order_curve
+
 
 def main():
     st.title("Suivi de Septembre 2024")
@@ -44,6 +46,32 @@ def main():
     
     fig.update_layout(barmode='stack')
     st.plotly_chart(fig, use_container_width=True)
+
+    # Filtrer les clients multi-order de janvier à juin 2024 (base historique)
+    base_clients = df[(df['date 1ere commande (Restaurant)'] >= pd.Timestamp('2024-01-01')) & 
+                      (df['date 1ere commande (Restaurant)'] <= pd.Timestamp('2024-06-30'))]
+    multi_base_clients = base_clients[base_clients['Jours avec commande'] > 1]
+
+    # Calculer le temps nécessaire pour la deuxième commande pour la base historique
+    second_order_base = multi_base_clients.groupby('Restaurant ID').apply(
+        lambda x: (x['Date de commande'].dt.normalize().drop_duplicates().sort_values().iloc[1] - 
+                   x['Date de commande'].dt.normalize().sort_values().iloc[0]).days
+    ).reset_index()
+    second_order_base.columns = ['Restaurant ID', 'Days to 2nd order']
+
+    # Filtrer les clients multi-order de septembre 2024
+    multi_september_clients = september_clients[september_clients['Jours avec commande'] > 1]
+
+    # Calculer le temps nécessaire pour la deuxième commande pour septembre 2024
+    second_order_september = multi_september_clients.groupby('Restaurant ID').apply(
+        lambda x: (x['Date de commande'].dt.normalize().drop_duplicates().sort_values().iloc[1] - 
+                   x['Date de commande'].dt.normalize().sort_values().iloc[0]).days
+    ).reset_index()
+    second_order_september.columns = ['Restaurant ID', 'Days to 2nd order']
+
+    # Créer le graphique avec deux lignes
+    fig_second_order = plot_second_order_curve(second_order_base, second_order_september)
+    st.plotly_chart(fig_second_order, use_container_width=True)
 
     # Boîtes d'information pour mono/multi-orders
     col1, col2, col3 = st.columns(3)
