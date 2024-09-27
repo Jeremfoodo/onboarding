@@ -75,10 +75,15 @@ def main():
         groupe = seniority_labels[idx]
         row = seniority_stats[seniority_stats['Groupe ancienneté'] == groupe]
         if not row.empty:
-            total = int(row['Restaurant ID'].values[0])
-            mono = int(row['Jours avec commande'].values[0])
-            percent_mono = row['% Mono-order'].values[0]
-            col.metric(label=groupe, value=total, delta=f"{mono} mono", help=f"{percent_mono:.2f}% mono-order")
+            total = int(row['Restaurant ID'].values[0])  # Total des clients
+            mono = int(row['Jours avec commande'].values[0])  # Mono-orders
+            percent_mono = (mono / total) * 100 if total > 0 else 0  # Pourcentage de mono-orders
+        
+            # Format plus clair avec trois lignes dans chaque boîte
+            col.metric(label=groupe, value=f"Total: {total}", 
+                       delta=f"Mono: {mono} ({percent_mono:.1f}%)", 
+                       delta_color="off")
+
 
     # Tableau des clients mono-order
     st.subheader("Clients Mono-order")
