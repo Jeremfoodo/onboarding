@@ -11,8 +11,11 @@ def main():
     
     # Filtrer les clients ayant passé leur première commande en septembre 2024
     df['Date de commande'] = pd.to_datetime(df['Date de commande'])
-    september_clients = df[(df['Date de commande'].dt.month == 9) & (df['Date de commande'].dt.year == 2024) & (df['Pays'] == 'FR')]
-    
+    df['Date 1ere commande'] = pd.to_datetime(df['Date 1ere commande'], errors='coerce')
+    september_clients = df[(df['Date 1ere commande'].dt.month == 9) & 
+                           (df['Date 1ere commande'].dt.year == 2024) & 
+                           (df['Pays'] == 'FR')]
+
     # Calculer les mono-achat et multi-achat
     order_days = september_clients.groupby('Restaurant ID')['Date de commande'].apply(lambda x: x.dt.normalize().nunique()).reset_index()
     order_days.rename(columns={'Date de commande': 'Jours avec commande'}, inplace=True)
@@ -23,12 +26,22 @@ def main():
     multi_order_clients = len(september_clients[september_clients['Jours avec commande'] > 1])
     total_clients = mono_order_clients + multi_order_clients
     percent_mono_order = (mono_order_clients / total_clients) * 100 if total_clients > 0 else 0
+
+    # Créer un DataFrame pour le graphique empilé
+    stacked_data = pd.DataFrame({
+        'Type de client': ['Mono-order', 'Multi-order'],
+        'Nombre de clients': [mono_order_clients, multi_order_clients]
+    })
+
+    # Graphique empilé des acquisitions
+    fig = px.bar(stacked_data, 
+                 x='Type de client', 
+                 y='Nombre de clients', 
+                 title="Acquisitions en septembre 2024 (FR)", 
+                 labels={'Nombre de clients': 'Nombre de clients'},
+                 text='Nombre de clients')
     
-    # Graphique des acquisitions
-    acquisitions_per_day = september_clients.groupby(september_clients['Date de commande'].dt.day)['Restaurant ID'].count().reset_index()
-    acquisitions_per_day.columns = ['Jour', 'Nombre de clients']
-    
-    fig = px.bar(acquisitions_per_day, x='Jour', y='Nombre de clients', title="Acquisitions en septembre 2024 (FR)")
+    fig.update_layout(barmode='stack')
     st.plotly_chart(fig, use_container_width=True)
 
     # Boîtes d'information pour mono/multi-orders
@@ -42,7 +55,7 @@ def main():
 
     # Segmentation par ancienneté
     st.subheader("Répartition par ancienneté")
-    september_clients['Ancienneté'] = (pd.Timestamp.today() - september_clients['Date de commande']).dt.days
+    september_clients['Ancienneté'] = (pd.Timestamp.today() - september_clients['Date 1ere commande']).dt.days
 
     seniority_bins = [(0, 5), (5, 10), (10, 15), (15, 20), (20, float('inf'))]
     seniority_labels = ['0-5 jours', '5-10 jours', '10-15 jours', '15-20 jours', '> 20 jours']
@@ -69,7 +82,7 @@ def main():
 
     # Tableau des clients mono-order
     st.subheader("Clients Mono-order")
-    mono_clients = september_clients[september_clients['Jours avec commande'] == 1][['Restaurant ID', 'Restaurant', 'Code Postal', 'Date de commande', 'Ancienneté']]
+    mono_clients = september_clients[september_clients['Jours avec commande'] == 1][['Restaurant ID', 'Restaurant', 'Code Postal', 'Date 1ere commande', 'Ancienneté']]
     mono_clients['Ancienneté'] = mono_clients['Ancienneté'].astype(int)
     
     # Affichage du tableau des clients mono-order
@@ -77,4 +90,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
