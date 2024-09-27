@@ -55,7 +55,7 @@ def main():
 
     # Segmentation par ancienneté
     st.subheader("Répartition par ancienneté")
-    september_clients['Ancienneté'] = (pd.Timestamp.today() - september_clients['Date 1ere commande']).dt.days
+    september_clients['Ancienneté'] = (pd.Timestamp.today() - september_clients['date 1ere commande (Restaurant)']).dt.days
 
     seniority_bins = [(0, 5), (5, 10), (10, 15), (15, 20), (20, float('inf'))]
     seniority_labels = ['0-5 jours', '5-10 jours', '10-15 jours', '15-20 jours', '> 20 jours']
@@ -82,7 +82,7 @@ def main():
 
     # Tableau des clients mono-order
     st.subheader("Clients Mono-order")
-    mono_clients = september_clients[september_clients['Jours avec commande'] == 1][['Restaurant ID', 'Restaurant', 'Code Postal', 'Date 1ere commande', 'Ancienneté']]
+    mono_clients = september_clients[september_clients['Jours avec commande'] == 1][['Restaurant ID', 'Restaurant', 'Code Postal', 'date 1ere commande (Restaurant)', 'Ancienneté']]
     mono_clients['Ancienneté'] = mono_clients['Ancienneté'].astype(int)
     
     # Affichage du tableau des clients mono-order
