@@ -2,3 +2,4 @@ gdown
 pandas
 streamlit
 openpyxl
+matplotlib
