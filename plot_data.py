@@ -1,18 +1,8 @@
 import pandas as pd
 import plotly.graph_objects as go
-import streamlit as st
 
-# Charger et filtrer les données pour les clients français entre le 1er janvier 2024 et aujourd'hui
+# Fonction pour filtrer les clients français et préparer les données pour mono vs multi-commande
 def load_and_filter_data(df):
-    # Exclure les commandes et paiements annulés
-    to_exclude_commande = ['CANCELLED', 'ABANDONED', 'FAILED', 'WAITING']
-    to_exclude_paiement = ['CANCELLED', 'ERROR']
-    
-    df = df[~df['Statut commande'].isin(to_exclude_commande)]
-    df = df[~df['Statut paiement'].isin(to_exclude_paiement)]
-    df = df[~df['Canal'].str.contains('trading', case=False, na=False)]
-    
-    # Filtrer les commandes à partir du 1er janvier 2024
     df['Date de commande'] = pd.to_datetime(df['Date de commande'], errors='coerce')
     df = df[df['Date de commande'] >= pd.Timestamp('2024-01-01')]
     
@@ -29,10 +19,10 @@ def load_and_filter_data(df):
     }).reset_index()
     clients.rename(columns={'date 1ere commande (Restaurant)': 'Date 1ère commande'}, inplace=True)
     
-    # Convertir 'Date 1ère commande' en datetime si ce n'est pas déjà fait
+    # Convertir la colonne 'Date 1ère commande' en datetime
     clients['Date 1ère commande'] = pd.to_datetime(clients['Date 1ère commande'], errors='coerce')
     
-    # Ne garder que les clients dont la première commande est en 2024
+    # Ne garder que les clients ayant une première commande en 2024
     clients = clients[(clients['Date 1ère commande'] >= pd.Timestamp('2024-01-01')) &
                       (clients['Date 1ère commande'] <= pd.Timestamp.today())]
     
@@ -48,10 +38,44 @@ def load_and_filter_data(df):
     
     return clients
 
-import pandas as pd
-import plotly.graph_objects as go
+# Fonction pour créer un graphique interactif Plotly pour mono vs multi-order
+def plot_mono_vs_multi_order(clients):
+    months = pd.period_range(start='2024-01', end=pd.Timestamp.today(), freq='M')
+    
+    data_list = []
+    for month in months:
+        month_clients = clients[clients['Mois 1ère commande'] == month]
+        mono_order_clients = len(month_clients[month_clients['Jours avec commande'] == 1])
+        multi_order_clients = len(month_clients[month_clients['Jours avec commande'] > 1])
+        total_clients = mono_order_clients + multi_order_clients
+        percent_mono_order = (mono_order_clients / total_clients) * 100 if total_clients > 0 else 0
+        data_list.append({
+            'Mois': month.to_timestamp(),
+            'Clients mono-achat': mono_order_clients,
+            'Clients multi-achats': multi_order_clients,
+            'Pourcentage mono-achat': percent_mono_order
+        })
 
-# Charger et filtrer les données et préparer les clients multi-commande
+    plot_data = pd.DataFrame(data_list)
+
+    fig = go.Figure(data=[
+        go.Bar(name='Clients mono-achat', x=plot_data['Mois'], y=plot_data['Clients mono-achat'], marker_color='#FFA07A', text=plot_data['Pourcentage mono-achat'], texttemplate='%{text:.2f}%', textposition='outside'),
+        go.Bar(name='Clients multi-achats', x=plot_data['Mois'], y=plot_data['Clients multi-achats'], marker_color='#20B2AA')
+    ])
+    
+    fig.update_layout(
+        barmode='stack',
+        title="Évolution des nouveaux clients en France (Mono-achat vs Multi-achats)",
+        xaxis_title="Mois",
+        yaxis_title="Nombre de nouveaux clients",
+        xaxis_tickformat='%Y-%m',
+        legend_title="Type de client",
+        hovermode="x"
+    )
+    
+    return fig
+
+# Fonction pour charger et filtrer les clients multi-commandes
 def load_multi_order_clients(df):
     df['Date de commande'] = pd.to_datetime(df['Date de commande'], errors='coerce')
     df = df[df['Date de commande'] >= pd.Timestamp('2024-01-01')]
@@ -86,9 +110,8 @@ def load_multi_order_clients(df):
     
     return multi_order_clients
 
-# Générer la courbe du pourcentage de clients passant à la deuxième commande
+# Fonction pour tracer la courbe du pourcentage de clients passant à la deuxième commande
 def plot_second_order_curve(multi_order_clients):
-    # Créer les données cumulatives pour tracer la courbe
     total_clients = len(multi_order_clients)
     multi_order_clients_60_days = multi_order_clients[multi_order_clients['Days to 2nd order'] <= 60]
     
@@ -118,5 +141,3 @@ def plot_second_order_curve(multi_order_clients):
     )
     
     return fig
-
-
