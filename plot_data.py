@@ -7,7 +7,7 @@ def load_and_filter_data(df):
     df['Date de commande'] = pd.to_datetime(df['Date de commande'], errors='coerce')
     df['date 1ere commande (Restaurant)'] = pd.to_datetime(df['date 1ere commande (Restaurant)'], errors='coerce')
     
-    # Filtrer à partir du 1er janvier 2024
+    # Filtrer les commandes à partir du 1er janvier 2024
     df = df[df['Date de commande'] >= pd.Timestamp('2024-01-01')]
     
     # Supprimer les enregistrements sans date de première commande
@@ -27,7 +27,11 @@ def load_and_filter_data(df):
     clients = clients[(clients['Date 1ère commande'] >= pd.Timestamp('2024-01-01')) &
                       (clients['Date 1ère commande'] <= pd.Timestamp.today())]
     
+    # Ajouter le mois de la première commande
+    clients['Mois 1ère commande'] = clients['Date 1ère commande'].dt.to_period('M')
+    
     return clients
+
 
 
 # Fonction pour créer un graphique interactif Plotly pour mono vs multi-order
