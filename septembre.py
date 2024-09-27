@@ -3,6 +3,37 @@ import pandas as pd
 import plotly.express as px
 from data_processing import load_prepared_data
 
+def apply_custom_style():
+    st.markdown("""
+        <style>
+        /* Style pour les boîtes */
+        .stMetric {
+            background-color: #f0f2f6;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        /* Style pour chaque boîte d'ancienneté */
+        .box-container {
+            background-color: #e0f7fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .mono-order {
+            color: #00796b;
+            font-weight: bold;
+        }
+        .percent {
+            color: #0288d1;
+            font-weight: bold;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+apply_custom_style()
+
 def main():
     st.title("Suivi de Septembre 2024")
 
@@ -69,7 +100,10 @@ def main():
 
     seniority_stats['% Mono-order'] = (seniority_stats['Jours avec commande'] / seniority_stats['Restaurant ID']) * 100
 
-    # Afficher les boîtes pour chaque groupe d'ancienneté
+    # Appliquer le style personnalisé pour les boîtes
+apply_custom_style()
+
+    # Afficher les boîtes pour chaque groupe d'ancienneté avec des conteneurs stylisés
     col1, col2, col3, col4, col5 = st.columns(5)
     for idx, col in enumerate([col1, col2, col3, col4, col5]):
         groupe = seniority_labels[idx]
@@ -79,10 +113,17 @@ def main():
             mono = int(row['Jours avec commande'].values[0])  # Mono-orders
             percent_mono = (mono / total) * 100 if total > 0 else 0  # Pourcentage de mono-orders
         
-            # Format plus clair avec trois lignes dans chaque boîte
-            col.metric(label=groupe, value=f"Total: {total}", 
-                       delta=f"Mono: {mono} ({percent_mono:.1f}%)", 
-                       delta_color="off")
+            # Utilisation de conteneurs HTML pour styliser les boîtes
+            with col:
+                st.markdown(f"""
+                    <div class="box-container">
+                        <div>{groupe}</div>
+                        <div><span>Total:</span> <strong>{total}</strong></div>
+                        <div><span class="mono-order">Mono-orders:</span> <strong>{mono}</strong></div>
+                        <div><span class="percent">% Mono-order:</span> <strong>{percent_mono:.1f}%</strong></div>
+                    </div>
+                """, unsafe_allow_html=True)
+
 
 
     # Tableau des clients mono-order
