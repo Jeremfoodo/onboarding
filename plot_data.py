@@ -49,6 +49,10 @@ def load_and_filter_data(df):
     return clients
 
 # Générer un graphique interactif à barres empilées avec Plotly
+import pandas as pd
+import plotly.graph_objects as go
+
+# Générer un graphique interactif à barres empilées avec Plotly
 def plot_mono_vs_multi_order(clients):
     # Préparer les données pour le graphique
     months = pd.period_range(start='2024-01', end=pd.Timestamp.today(), freq='M')
@@ -65,7 +69,8 @@ def plot_mono_vs_multi_order(clients):
             data_list.append({
                 'Mois': month.to_timestamp(),
                 'Clients mono-achat': mono_order_clients,
-                'Clients multi-achats': multi_order_clients
+                'Clients multi-achats': multi_order_clients,
+                'Pourcentage mono-achat': percent_mono_order
             })
 
     # Créer le DataFrame pour le graphique
@@ -73,7 +78,7 @@ def plot_mono_vs_multi_order(clients):
 
     # Créer le graphique à barres empilées avec Plotly
     fig = go.Figure(data=[
-        go.Bar(name='Clients mono-achat', x=plot_data['Mois'], y=plot_data['Clients mono-achat'], marker_color='#FFA07A'),
+        go.Bar(name='Clients mono-achat', x=plot_data['Mois'], y=plot_data['Clients mono-achat'], marker_color='#FFA07A', text=plot_data['Pourcentage mono-achat'], texttemplate='%{text:.2f}%', textposition='outside'),
         go.Bar(name='Clients multi-achats', x=plot_data['Mois'], y=plot_data['Clients multi-achats'], marker_color='#20B2AA')
     ])
     
@@ -88,7 +93,5 @@ def plot_mono_vs_multi_order(clients):
         hovermode="x"
     )
     
-    # Ajouter des étiquettes sur les barres
-    fig.update_traces(texttemplate='%{y}', textposition='inside')
-    
     return fig
+
