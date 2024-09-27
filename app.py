@@ -1,20 +1,31 @@
 import streamlit as st
-from data_processing import load_prepared_data, load_google_sheets_data
+import pandas as pd
+from plot_data import load_and_filter_data, plot_mono_vs_multi_order
+import matplotlib.pyplot as plt
 
+# Charger les données (supposons que la fonction load_prepared_data() soit déjà définie)
+from data_processing import load_prepared_data
+
+# Créer l'application avec les onglets
 def main():
     st.title("Application Onboarding")
 
-    # Charger les données
-    st.write("Téléchargement et filtrage des données à partir du 1er janvier 2024...")
-    df_filtered = load_prepared_data()
-    st.write("Données filtrées (à partir du 1er janvier 2024) :")
-    st.dataframe(df_filtered)
+    tab1, tab2 = st.tabs(["Accueil", "Suivi"])
 
-    st.write("Téléchargement des données Google Sheets...")
-    df_google_sheets = load_google_sheets_data()
-    st.write("Données de Google Sheets :")
-    st.dataframe(df_google_sheets)
+    with tab2:
+        st.header("Suivi")
+        
+        # Section historique
+        st.subheader("Historique")
+        st.write("Voici les infos sur le taux de mono-order des clients français.")
+        
+        # Charger les données et filtrer pour la France
+        df = load_prepared_data()
+        clients_fr = load_and_filter_data(df)
+        
+        # Afficher les graphiques
+        fig = plot_mono_vs_multi_order(clients_fr)
+        st.pyplot(fig)
 
 if __name__ == "__main__":
     main()
-
